@@ -25,21 +25,9 @@ jobs:
           docker build . --file Dockerfile --build-arg BUILD_VERSION=${SHORT_SHA} --tag $CONTAINER_URL$REPOSITORY_NAME:${SHORT_SHA} --tag $CONTAINER_URL$REPOSITORY_NAME:latest
           docker push $CONTAINER_URL$REPOSITORY_NAME:${SHORT_SHA}
           docker push $CONTAINER_URL$REPOSITORY_NAME:latest
-      # - name: Trigger deployment webhook
-      #   env:
-      #     CONTAINER_URL: docker.pkg.github.com/${{github.repository}}/
-      #   run: |
-      #     export SHORT_SHA=`git rev-parse --short=7 ${GITHUB_SHA}`
-      #     curl -X POST -H "Content-Type: application/json" --data "{ \"name\": \"$CONTAINER_URL$REPOSITORY_NAME\", \"tag\": \"${SHORT_SHA}\" }" https://keel.tombull.com/v1/webhooks/native
-      # - name: Immediately purge CloudFlare cache
-      #   run: |
-      #     curl -X POST "https://api.cloudflare.com/client/v4/zones/49459d045586e6d443b8b77c8bfece62/purge_cache" -H "Authorization: Bearer ${{secrets.CLOUDFLARE_API_TOKEN}}" -H "Content-Type: application/json" --data '{"purge_everything":true}'
-      #     curl -X POST "https://api.cloudflare.com/client/v4/zones/a7d76627e6bb241bf513a6c7a407c6f9/purge_cache" -H "Authorization: Bearer ${{secrets.CLOUDFLARE_API_TOKEN}}" -H "Content-Type: application/json" --data '{"purge_everything":true}'
-      #     curl -X POST "https://api.cloudflare.com/client/v4/zones/6d3aa425f9591dcc4275966035cb2edd/purge_cache" -H "Authorization: Bearer ${{secrets.CLOUDFLARE_API_TOKEN}}" -H "Content-Type: application/json" --data '{"purge_everything":true}'
-      # - name: Wait for thirty seconds for deployment to activate
-      #   run: sleep 30s
-      # - name: Purge CloudFlare cache again after deployment complete
-      #   run: |
-      #     curl -X POST "https://api.cloudflare.com/client/v4/zones/49459d045586e6d443b8b77c8bfece62/purge_cache" -H "Authorization: Bearer ${{secrets.CLOUDFLARE_API_TOKEN}}" -H "Content-Type: application/json" --data '{"purge_everything":true}'
-      #     curl -X POST "https://api.cloudflare.com/client/v4/zones/a7d76627e6bb241bf513a6c7a407c6f9/purge_cache" -H "Authorization: Bearer ${{secrets.CLOUDFLARE_API_TOKEN}}" -H "Content-Type: application/json" --data '{"purge_everything":true}'
-      #     curl -X POST "https://api.cloudflare.com/client/v4/zones/6d3aa425f9591dcc4275966035cb2edd/purge_cache" -H "Authorization: Bearer ${{secrets.CLOUDFLARE_API_TOKEN}}" -H "Content-Type: application/json" --data '{"purge_everything":true}'
+      - name: Trigger deployment webhook
+        env:
+          CONTAINER_URL: docker.pkg.github.com/${{github.repository}}/
+        run: |
+          export SHORT_SHA=`git rev-parse --short=7 ${GITHUB_SHA}`
+          curl -X POST -H "Content-Type: application/json" --data "{ \"name\": \"$CONTAINER_URL$REPOSITORY_NAME\", \"tag\": \"${SHORT_SHA}\" }" https://keel.iteralis.com/v1/webhooks/native
