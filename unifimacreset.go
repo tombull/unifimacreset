@@ -207,6 +207,9 @@ func main() {
 			context.AbortWithStatusJSON(http.StatusBadRequest, ResponseData{Success: false, Message: "No devices found on UniFi server with mac address " + strings.ToLower(searchMac)})
 		}
 	})
+	router.GET("/healthcheck", func(context *gin.Context) {
+		context.String(http.StatusOK, "OK")
+	})
 	router.Run(":9000")
 
 }
