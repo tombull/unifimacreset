@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -15,10 +16,11 @@ import (
 
 func main() {
 	type ConfigSpecification struct {
-		Debug    bool   `default:true`
-		BaseURL  string `default:"https://demo.ui.com"`
-		Username string `default:"admin"`
-		Password string `default:"password"`
+		Debug                bool   `default:"true"`
+		ValidateCertificates bool   `default:"false"`
+		BaseURL              string `default:"https://demo.ui.com"`
+		Username             string `default:"admin"`
+		Password             string `default:"password"`
 	}
 
 	var config ConfigSpecification
@@ -70,10 +72,10 @@ func main() {
 		}
 		req.Header.Set("Origin", config.BaseURL)
 		req.Header.Set("Content-Type", "application/json")
-
-		client := &http.Client{
-			Jar: cookieJar,
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: !config.ValidateCertificates},
 		}
+		client := &http.Client{Jar: cookieJar, Transport: tr}
 		resp, err := client.Do(req)
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusBadRequest, ResponseData{Success: false, Message: "Error logging in to UniFi server: " + err.Error()})
