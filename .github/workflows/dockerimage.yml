@@ -13,21 +13,18 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Set repository name environment variable
-        run: echo ::set-env name=REPOSITORY_NAME::$(echo "$GITHUB_REPOSITORY" | awk -F / '{print $2}' | sed -e "s/:refs//")
-        shell: bash
       - name: Build and upload the docker image
         env:
-          CONTAINER_URL: docker.pkg.github.com/${{github.repository}}/
+          DOCKER_HUB_REPO: tombull/unifimacreset
         run: |
-          echo ${{secrets.GITHUB_TOKEN}} | docker login --username $GITHUB_ACTOR --password-stdin docker.pkg.github.com
+          echo ${{secrets.DOCKER_HUB_TOKEN}} | docker login --username tombull --password-stdin
           export SHORT_SHA=`git rev-parse --short=7 ${GITHUB_SHA}`
-          docker build . --file Dockerfile --build-arg BUILD_VERSION=${SHORT_SHA} --tag $CONTAINER_URL$REPOSITORY_NAME:${SHORT_SHA} --tag $CONTAINER_URL$REPOSITORY_NAME:latest
-          docker push $CONTAINER_URL$REPOSITORY_NAME:${SHORT_SHA}
-          docker push $CONTAINER_URL$REPOSITORY_NAME:latest
+          docker build . --file Dockerfile --build-arg BUILD_VERSION=${SHORT_SHA} --tag ${DOCKER_HUB_REPO}:${SHORT_SHA} --tag ${DOCKER_HUB_REPO}:latest
+          docker push ${DOCKER_HUB_REPO}:${SHORT_SHA}
+          docker push ${DOCKER_HUB_REPO}:latest
       - name: Trigger deployment webhook
         env:
-          CONTAINER_URL: docker.pkg.github.com/${{github.repository}}/
+          DOCKER_HUB_REPO: tombull/unifimacreset
         run: |
           export SHORT_SHA=`git rev-parse --short=7 ${GITHUB_SHA}`
-          curl -X POST -H "Content-Type: application/json" --data "{ \"name\": \"$CONTAINER_URL$REPOSITORY_NAME\", \"tag\": \"${SHORT_SHA}\" }" https://keel.iteralis.com/v1/webhooks/native
+          curl -X POST -H "Content-Type: application/json" --data "{ \"name\": \"${DOCKER_HUB_REPO}\", \"tag\": \"${SHORT_SHA}\" }" https://keel.iteralis.com/v1/webhooks/native
